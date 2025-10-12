@@ -106,7 +106,7 @@ export default function Landing() {
                 autoComplete="off"
                 spellCheck={false}
               />
-              <button className="btn btn-neutral w-full text-lg py-3" onClick={joinRoom} disabled={!canJoin}>
+              <button className="btn w-full text-lg py-3" style={{ backgroundColor: '#f97316', color: 'white' }} onClick={joinRoom} disabled={!canJoin}>
                 Μπες με κωδικό
               </button>
             </div>

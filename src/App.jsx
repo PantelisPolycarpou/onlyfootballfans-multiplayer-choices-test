@@ -132,6 +132,7 @@ export default function QuizPrototype({
   onOpenOverlayRequest = null,
   onNameSaved = null,
   startStage = "intro", // ← NEW: "intro" | "name"
+  onNavigateHome = null,
 }) {
 
 
@@ -780,7 +781,7 @@ export default function QuizPrototype({
   }
 
   // ——— Intro Stage ———
-  function IntroStage() {
+  function IntroStage({ onNavigateHome }) {
     const formatPoints = (ptsArr = []) => {
       const pts = [...ptsArr].sort((a, b) => a - b);
       if (pts.length <= 1) return `×${pts[0] ?? 1}`;
@@ -790,7 +791,15 @@ export default function QuizPrototype({
 
     return (
       <StageCard>
-        <Logo className="mx-auto h-32 w-auto mb-8" />
+        <div className="flex items-center justify-between py-4 px-4">
+          <Logo className="h-32 w-auto" />
+          <button
+            onClick={() => setShowHowTo(true)}
+            className="rounded-full bg-slate-200 text-text px-4 py-2 text-sm font-semibold"
+          >
+            Πώς παίζεται
+          </button>
+        </div>
         <div className="text-center">
           <h1 className="font-display text-3xl font-extrabold text-text">
             Ποδοσφαιρικό Κουίζ
@@ -843,7 +852,15 @@ export default function QuizPrototype({
           </ul>
         </div>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-between">
+          {onNavigateHome && (
+            <button
+              onClick={() => onNavigateHome('/')}
+              className="btn bg-primary text-white"
+            >
+              Αρχική
+            </button>
+          )}
           <button onClick={next} className="btn btn-accent">
             Ας παίξουμε
           </button>
@@ -1352,12 +1369,12 @@ export default function QuizPrototype({
     const deltaPts = currentRow ? currentRow.delta : 0;
 
     const outcomeBg = isCorrect
-      ? "bg-primary-100 border-primary-200"
+      ? "bg-green-100 border-green-200"
       : isWrong
       ? "bg-red-100 border-red-200"
       : "bg-slate-100 border-slate-200";
 
-    const outcomePillBg = isCorrect ? "bg-primary" : "bg-red-500";
+    const outcomePillBg = isCorrect ? "bg-green-500" : "bg-red-500";
 
     return (
       <StageCard>
@@ -1821,7 +1838,7 @@ export default function QuizPrototype({
 
         {/* Stages */}
         {stage === STAGES.NAME && !p1.name && <NameStage />}
-        {stage === STAGES.INTRO && <IntroStage />}
+        {stage === STAGES.INTRO && <IntroStage onNavigateHome={onNavigateHome} />}
         {stage === STAGES.CATEGORY && <CategoryStage />}
         {stage === STAGES.QUESTION && <QuestionStage />}
         {stage === STAGES.ANSWER && <AnswerStage />}
@@ -1830,9 +1847,11 @@ export default function QuizPrototype({
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs text-slate-500 font-ui">
           <div>Στάδιο: {stageLabel(stage)}</div>
           <div className="flex items-center gap-3">
-            <button className="btn btn-neutral" onClick={resetGame}>
-              Επαναφορά παιχνιδιού
-            </button>
+            {stage !== STAGES.INTRO && (
+              <button className="btn btn-neutral" onClick={resetGame}>
+                Επαναφορά παιχνιδιού
+              </button>
+            )}
           </div>
         </div>
       </div>
