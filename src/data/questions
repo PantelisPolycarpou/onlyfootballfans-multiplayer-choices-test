@@ -3,7 +3,7 @@ export const questions = [
 
   {
     id: "q4-saka-second-nationality",
-    order: 1,
+    order: 10,
     category: "Εθνικότητες",
     points: 1,
     lang: "el",
@@ -57,8 +57,8 @@ export const questions = [
 
     answerMode: "catalog",
     catalog: "players",
-    accept: ["Nicolas Otamendi"],
-    answer: "Nicolas Otamendi",
+    accept: ["Emre Can"],
+    answer: "Emre Can",
   },
 
   // 3) Missing from XI → Dejan Lovren (image)
@@ -81,9 +81,9 @@ export const questions = [
     answer: "Dejan Lovren",
   },
 
-  // 5) Iconic player → Zidane first pro club
+  // 5) Iconic player → Kaká first pro club
   {
-    id: "q5-zidane-first-club",
+    id: "q5-kaka-first-club",
     order: 5,
     category: "Iconic Players",
     points: 1,
@@ -97,7 +97,7 @@ export const questions = [
 
     answerMode: "catalog",
     catalog: "teams",
-    accept: ["AC Milan", "Milan"],
+    accept: ["AC Milan", "Milan", "Μίλαν"],
     answer: "AC Milan",
   },
 
@@ -117,8 +117,8 @@ export const questions = [
 
     answerMode: "catalog",
     catalog: "players",
-    accept: ["Roberto Carlos"],
-    answer: "Roberto Carlos",
+    accept: ["Granit Xhaka"],
+    answer: "Granit Xhaka",
   },
 
   // 7) CL League Phase — northernmost stadium (Bodø/Glimt)
@@ -160,8 +160,24 @@ export const questions = [
     accept: ["Lucas Hernandez", "Lucas Hernández"],
     answer: "Lucas Hernandez to Bayern (2019)",
   },
+  // 9) Top 5 Champions League Scorers
+  {
+    id: "q10-top-5-cl-scorers",
+    order: 1,
+    category: "Top 5",
+    points: 3,
+    lang: "el",
+    prompt: "Ποιοι είναι οι 5 κορυφαίοι σκόρερ στην ιστορία του Champions League;",
+    guidance: "Θα λάβετε πόντους ανάλογα με τον αριθμό των σωστών απαντήσεων. Για κάθε 2 σωστές απαντήσεις θα παίρνετε από 1 πόντο, και για 5 στα 5 θα πάρετε συνολικά 3 πόντους.",
+    type: "open",
+    time_seconds: 120,
+    answerMode: "multiselect",
+    catalog: "players",
+    accept: ["Cristiano Ronaldo", "Lionel Messi", "Robert Lewandowski", "Karim Benzema", "Raul"],
+    answer: "Cristiano Ronaldo, Lionel Messi, Robert Lewandowski, Karim Benzema, Raul",
+  },
 
-  // 9) FINAL — Iconic Managers (numeric) — how many teams managed
+  // 10) FINAL — Iconic Managers (numeric) — how many teams managed
   {
     id: "q9-iconic-managers-count",
     order: 9,
@@ -170,7 +186,7 @@ export const questions = [
     isFinal: true,
     lang: "el",
     prompt:
-      "Πόσες διαφορετικές ομάδες (και εθνικές) έχει προπονήσει ο παρακάτω προπονητής;",
+      "Πόσες διαφορετικές ομάδες (συμπεριλαμβανομένων και των εθνικών ομάδων) έχει προπονήσει ο παρακάτω προπονητής;",
     type: "open",
     media: { kind: "image", src: "/Images/Photo4.png", alt: "Photo quiz 1" },
 
@@ -182,4 +198,6 @@ export const questions = [
     answer:
       "8 ομάδες: Niki Volos, Iraklis, APOEL, Panachaiki, Al Nasr, United Arab Emirates, Panathinaikos, Greece",
   },
+
+
 ];

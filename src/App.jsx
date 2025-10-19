@@ -6,7 +6,10 @@ import ResultsTableResponsive from "./components/ResultsTableResponsive";
 // Inputs & validation
 import AutoCompleteAnswer from "./components/AutoCompleteAnswer";
 import ScoreInput from "./components/ScoreInput";
+import MultiSelectAnswer from "./components/MultiSelectAnswer";
+import MultiSelectCatalogAnswer from "./components/MultiSelectCatalogAnswer";
 import { validate as baseValidate } from "./lib/validators";
+import { norm } from "./lib/catalogs";
 import { useMediaPrefetch } from "./hooks/useMediaPrefetch";
 
 // Media & timers
@@ -119,6 +122,22 @@ async function validateAny(q, value) {
         : [normalizeNumber(q.acceptNumber ?? q.answer)];
     const correct = allowed.includes(got);
     return { correct, canonical: String(got) };
+  }
+  if (mode === "multiselect") {
+    if (!Array.isArray(value)) {
+        return { correctCount: 0, canonical: q.answer };
+    }
+    const givenAnswers = value.map(s => norm(s || '')).filter(Boolean);
+    const correctAnswers = q.accept.map(norm);
+    const correctSet = new Set(correctAnswers);
+    const givenSet = new Set(givenAnswers);
+    let correctCount = 0;
+    for (const answer of givenSet) {
+        if (correctSet.has(answer)) {
+            correctCount++;
+        }
+    }
+    return { correctCount, canonical: q.answer };
   }
   return baseValidate(q, value);
 }
@@ -272,6 +291,11 @@ export default function QuizPrototype({
     {}
   );
 
+  const [partialPoints, setPartialPoints] = usePersistentState(
+    `${STORAGE_KEY}:partialPoints`,
+    {}
+  );
+
   // How-to
   const [showHowTo, setShowHowTo] = useState(false);
   const [introHowToShown, setIntroHowToShown] = useState(false); // per game
@@ -350,7 +374,11 @@ export default function QuizPrototype({
           outcome = "Σωστό";
           streak = streak + 1;
           bonus = streak >= 3 ? 1 : 0;
-          delta = base * (x2Applied ? 2 : 1) + bonus;
+          if (qi.answerMode === 'multiselect' && partialPoints[i] !== undefined) {
+            delta = partialPoints[i] + bonus;
+          } else {
+            delta = base * (x2Applied ? 2 : 1) + bonus;
+          }
         } else if (outcomeKey === "wrong") {
           outcome = "Λάθος";
           streak = 0;
@@ -380,7 +408,7 @@ export default function QuizPrototype({
     });
 
     return rows;
-  }, [QUESTIONS, answered, x2, wager, playerAnswers]);
+  }, [QUESTIONS, answered, x2, wager, playerAnswers, partialPoints]);
 
   // On entering Category: reset finale flags (per question)
   useEffect(() => {
@@ -1136,15 +1164,49 @@ export default function QuizPrototype({
 
       if (isAutoMode) {
         const result = await validateAny(q, stored?.name ? stored : stored);
-        if (!isFinalIndex) {
-          setAnswered((a) => ({
-            ...a,
-            [index]: result.correct ? "correct" : "wrong",
-          }));
-          if (result.correct) awardToP1(1);
-          else noAnswer();
+
+        if (q.answerMode === 'multiselect' && q.id === 'q10-top-5-cl-scorers') {
+            const correctCount = result.correctCount || 0;
+            let points = 0;
+            if (correctCount >= 5) {
+                points = 3;
+            } else if (correctCount >= 4) {
+                points = 2;
+            } else if (correctCount >= 2) {
+                points = 1;
+            }
+
+            if (points > 0) {
+                setPartialPoints(p => ({ ...p, [index]: points }));
+                setP1(s => {
+                    const newStreak = lastCorrect === "p1" ? s.streak + 1 : 1;
+                    const streakBonus = newStreak >= 3 ? 1 : 0;
+                    return {
+                        ...s,
+                        score: s.score + points + streakBonus,
+                        streak: newStreak,
+                        maxStreak: Math.max(s.maxStreak, newStreak)
+                    }
+                });
+                setLastCorrect("p1");
+                setJustScored(true);
+                setJustLostStreak(false);
+                setAnswered(a => ({ ...a, [index]: "correct" }));
+            } else {
+                noAnswer();
+                setAnswered(a => ({ ...a, [index]: "wrong" }));
+            }
         } else {
-          finalizeOutcomeP1(result.correct ? "correct" : "wrong");
+            if (!isFinalIndex) {
+              setAnswered((a) => ({
+                ...a,
+                [index]: result.correct ? "correct" : "wrong",
+              }));
+              if (result.correct) awardToP1(1);
+              else noAnswer();
+            } else {
+              finalizeOutcomeP1(result.correct ? "correct" : "wrong");
+            }
         }
       }
     };
@@ -1171,6 +1233,9 @@ export default function QuizPrototype({
         <h3 className="mt-4 font-display text-2xl font-bold leading-snug text-text">
           {q.prompt}
         </h3>
+        {q.guidance && (
+          <p className="mt-2 text-sm text-slate-400">{q.guidance}</p>
+        )}
 
         {/* Media */}
         <div className="mt-4">
@@ -1321,6 +1386,37 @@ export default function QuizPrototype({
               </button>
             </div>
           </form>
+        )}
+
+        {/* MULTISELECT */}
+        {mode === "multiselect" && (
+          <div className="mt-5 flex flex-col items-stretch gap-3">
+            {q.catalog ? (
+              <MultiSelectCatalogAnswer
+                catalog={q.catalog}
+                onChange={(value) => setInputValue(value)}
+              />
+            ) : (
+              <MultiSelectAnswer onChange={(value) => setInputValue(value)} />
+            )}
+            <div className="flex flex-wrap gap-3 justify-center">
+              <button
+                type="button"
+                className="btn btn-accent"
+                onClick={() => submitAndReveal(inputValue)}
+              >
+                Υποβολή
+              </button>
+              <button
+                type="button"
+                className="btn btn-neutral"
+                onClick={() => submitAndReveal("")}
+                title="Μετάβαση στην απάντηση χωρίς να δοθεί λύση"
+              >
+                Δεν γνωρίζω
+              </button>
+            </div>
+          </div>
         )}
       </StageCard>
     );
